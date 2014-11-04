@@ -1,4 +1,4 @@
-#A brief conclusion of high scalability techniques.
+#A brief summary of high scalability techniques.
 The content of this file will cover all the high scalability techniques I learn so far.  
 I would like to classify the whole architecture into 3 layers: **load balancing layer**, **application layer** and **database layer**. At the end there will be some words about caching which I think is very useful and can be used in any layer :)
 
