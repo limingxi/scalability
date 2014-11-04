@@ -12,10 +12,10 @@ The main problem of load balancing is the persistence within one session. If use
 ##Application Layer
 OK, now the balancer scheduled very well and the requests have been sent to the application server. As we know, the server's computing resource is also limited by hardware. With the requests coming in(especially TCP based), we have two options to handle:   
 
-1. the first is just handle them **one by one**(synchronously) which will make the response so slow and your users may just shutdown the application  
-2. the other option is to use **multi-thread**(asynchronously) strategy, we open one thread for each client.  
+1. the first is just handle them **one by one** (synchronously) which will make the response so slow and your users may just shutdown the application  
+2. the other option is to use **multi-thread** (asynchronously) strategy, we open one thread for each client.  
 
-In fact [Apache](http://en.wikipedia.org/wiki/Apache_HTTP_Server) is using the second strategy(maybe multi-process, but we just use multi-thread for general) and it can serve very well in most cases. Although open and destroy threads can be time consuming, [thread pool](http://en.wikipedia.org/wiki/Thread_pool_pattern) can solve this problem. However, multi-thread can exhaust the server's computing resource. There is a famous question related to this topic: [C10K problem](http://en.wikipedia.org/wiki/C10k_problem).  
+In fact [Apache](http://en.wikipedia.org/wiki/Apache_HTTP_Server) is using the second strategy (maybe multi-process, but we just use multi-thread for general) and it can serve very well in most cases. Although open and destroy threads can be time consuming, [thread pool](http://en.wikipedia.org/wiki/Thread_pool_pattern) can solve this problem. However, multi-thread can exhaust the server's computing resource. There is a famous question related to this topic: [C10K problem](http://en.wikipedia.org/wiki/C10k_problem).  
 
 You may have heard that [Nginx](http://en.wikipedia.org/wiki/Nginx) is the solution of C10K problem. But why is that? If you have experience in socket programming in C, you know there are two ways to make application work asynchronously: multi-thread or use the function [select](http://linux.die.net/man/2/select).   
 
@@ -26,4 +26,10 @@ Polling is good, but there is another mechanism which is more efficient: **event
 By the way, [**nodejs**](http://blog.mixu.net/2011/02/01/understanding-the-node-js-event-loop/) is also a very popular term in the world of event driven. It is very fast and single thread. That would be thankful for javascript supports **callback**(Which acts like the trigger mentioned above) and **google's V8 engine**.  
 
 ##Database Layer
+
+Now we come to the most headache part: database. Disk I/O is the slowest and that may be your application's bottleneck.  
+
+One solution should be: **master-slave schema**. The core idea of master-slave is to separate read and write. The master server is in charge of updating and slaves are just used for reading. The content of master database will be replicated to slaves periodically. Clearly this is not a real time updating, it can work fine on static data. What about real time changing data?  
+
+Another solution is combine your relational database with **[nosql](http://en.wikipedia.org/wiki/NoSQL)** database. Nosql is short for Not Only SQL, it contains a lot of products, everyone has its own specific field. The point of nosql is: it can be [horizontally scaled](http://en.wikipedia.org/wiki/Scalability) easily! Horizontally scale is important, but it is a disaster for sql database. Since sql database has several normal forms and supports things like transaction, referential integrity etc, it is hard to handle the situation like make tables on different servers have some "relation". However, nosql only needs key to retrieve value, the "relation" is gone. So nosql database is easy to scale horizontally.  
 
