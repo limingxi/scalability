@@ -33,3 +33,15 @@ One solution should be: **master-slave schema**. The core idea of master-slave i
 
 Another solution is combine your relational database with **[nosql](http://en.wikipedia.org/wiki/NoSQL)** database. Nosql is short for Not Only SQL, it contains a lot of products, everyone has its own specific field. The point of nosql is: it can be [horizontally scaled](http://en.wikipedia.org/wiki/Scalability) easily! Horizontally scale is important, but it is a disaster for sql database. Since sql database has several normal forms and supports things like transaction, referential integrity etc, it is hard to handle the situation like make tables on different servers have some "relation". However, nosql only needs key to retrieve value, the "relation" is gone. So nosql database is easy to scale horizontally.  
 
+##Caching
+Caching is not belonged to any layer, but it can be used between the layers. In fact, Cache means fast. The reason is quite simple: it holds data in [RAM](http://en.wikipedia.org/wiki/Random-access_memory). And data is stored in a key-value style which means it acts like a map. And you may find that this caching thing is pretty much like nosql. Yes nosql database can be used as cache if we keep things in memory.  
+
+Let see two cases for warming up: 
+
+1. Caching between database and application: for each database query, we store them in the cache by query->result. And each time we receive the same query, we don't need to do the select or join thing, we just get that from cache. A query from hard disk with searching and grouping and many things versus drag the result from RAM, there is really a big advantage for caching.  
+
+2. Caching between server and client: similar with dababase query, each http request can be treated as key, and the response is the value. As long as the server logic does not changed, the data has not changed, the response can be reused and no need to bother the server. That's why we have [reverse proxy](http://en.wikipedia.org/wiki/Reverse_proxy).  
+
+The point of caching is to reuse the data content, then hit rate is important. And since RAM does not have unlimited size, we need to update cached content all the time. There are two popular algorithms for caching: [LRU](http://mcicpc.cs.atu.edu/archives/2012/mcpc2012/lru/lru.html) and [LFU](http://en.wikipedia.org/wiki/Least_frequently_used).  
+
+After all, we need to scale. And again, we want it to be horizontally scaled. Fortunately, cache can be easy to scale since there is no relationship between entries. Our job is to distribute them on to servers and we can reach them fast. For a simple example, we can just hash each key into a number, then use (hash(Key)%1000) to distribute entries onto 1000 servers. When we want to know which machine has the data we want, we just use the hash(Key)%1000 and we get the machine's ID.
